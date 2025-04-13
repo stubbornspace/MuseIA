@@ -2,20 +2,19 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { globalStyles } from '../styles/globalStyles';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { useBackground } from '../context/BackgroundContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 
 const BACKGROUND_IMAGES = [
   { id: 'space', name: 'Space', source: require('../../assets/bgs/space.jpg') },
@@ -26,8 +25,6 @@ const BACKGROUND_IMAGES = [
 
 export const SettingsScreen = () => {
   const navigation = useNavigation();
-  const [apiKey, setApiKey] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
   const { backgroundImage, setBackgroundImage } = useBackground();
   const [selectedBackground, setSelectedBackground] = useState('space');
 
@@ -37,41 +34,12 @@ export const SettingsScreen = () => {
 
   const loadSettings = async () => {
     try {
-      const [savedKey, savedBackground] = await Promise.all([
-        AsyncStorage.getItem('openai_api_key'),
-        AsyncStorage.getItem('background_image'),
-      ]);
-      if (savedKey) {
-        setApiKey(savedKey);
-      }
+      const savedBackground = await AsyncStorage.getItem('background_image');
       if (savedBackground) {
         setSelectedBackground(savedBackground);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const saveApiKey = async () => {
-    try {
-      await AsyncStorage.setItem('openai_api_key', apiKey);
-      Alert.alert('Success', 'API key saved successfully');
-    } catch (error) {
-      console.error('Error saving API key:', error);
-      Alert.alert('Error', 'Failed to save API key');
-    }
-  };
-
-  const clearApiKey = async () => {
-    try {
-      await AsyncStorage.removeItem('openai_api_key');
-      setApiKey('');
-      Alert.alert('Success', 'API key cleared');
-    } catch (error) {
-      console.error('Error clearing API key:', error);
-      Alert.alert('Error', 'Failed to clear API key');
     }
   };
 
@@ -102,39 +70,6 @@ export const SettingsScreen = () => {
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>OpenAI API Key</Text>
-          <Text style={styles.description}>
-            Enter your OpenAI API key to enable the AI chat functionality.
-            Your key is stored securely on your device.
-          </Text>
-          
-          <TextInput
-            style={styles.input}
-            value={apiKey}
-            onChangeText={setApiKey}
-            placeholder="Enter your OpenAI API key"
-            placeholderTextColor="rgba(255, 255, 255, 0.5)"
-            secureTextEntry
-          />
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.saveButton]}
-              onPress={saveApiKey}
-            >
-              <Text style={styles.buttonText}>Save API Key</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.button, styles.clearButton]}
-              onPress={clearApiKey}
-            >
-              <Text style={styles.buttonText}>Clear API Key</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Background Image</Text>
           <Text style={styles.description}>
@@ -199,34 +134,6 @@ const styles = StyleSheet.create({
     ...globalStyles.text,
     color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 16,
-  },
-  input: {
-    ...globalStyles.text,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  button: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginHorizontal: 4,
-  },
-  saveButton: {
-    backgroundColor: 'rgba(0, 122, 255, 0.6)',
-  },
-  clearButton: {
-    backgroundColor: 'rgba(255, 0, 0, 0.3)',
-  },
-  buttonText: {
-    ...globalStyles.text,
-    fontWeight: 'bold',
   },
   backgroundGrid: {
     flexDirection: 'row',
