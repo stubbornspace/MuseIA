@@ -32,7 +32,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       } else {
         const { sound: newSound } = await Audio.Sound.createAsync(
-          require('../../assets/destiny.m4a'),
+          require('../../assets/audio/stars.m4a'),
           { shouldPlay: true }
         );
         setSound(newSound);

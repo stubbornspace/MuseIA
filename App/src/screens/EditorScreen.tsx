@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet, ImageBackground } from 'react-native';
+import { View, TextInput, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import { useNotes } from '../context/NotesContext';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,10 +8,13 @@ import { globalStyles } from '../styles/globalStyles';
 import { SaveNoteModal } from '../components/SaveNoteModal';
 import { MenuButton } from '../components/MenuButton';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { useBackground } from '../context/BackgroundContext';
 
 type RootStackParamList = {
   NotesList: undefined;
   Editor: { noteId?: string };
+  Settings: undefined;
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -23,6 +26,7 @@ export const EditorScreen = () => {
   const route = useRoute<EditorScreenRouteProp>();
   const noteId = route.params?.noteId;
   const { notes, addNote, updateNote, deleteNote } = useNotes();
+  const { backgroundImage } = useBackground();
   
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -39,6 +43,11 @@ export const EditorScreen = () => {
       }
     }
   }, [noteId, notes]);
+
+  const handleTextChange = (text: string) => {
+    setContent(text);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
 
   const handleSave = (title: string, tag: string) => {
     if (isEditing && noteId) {
@@ -73,20 +82,32 @@ export const EditorScreen = () => {
       onPress: () => navigation.navigate('NotesList'),
       icon: 'home-outline' as IconName,
     },
+    {
+      label: 'Settings',
+      onPress: () => navigation.navigate('Settings'),
+      icon: 'settings-outline' as IconName,
+    },
   ];
 
   return (
     <ImageBackground 
-      source={require('../../assets/space.jpg')} 
+      source={backgroundImage}
       style={globalStyles.container}
     >
+      <TouchableOpacity 
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
+      
       <MenuButton actions={menuActions} />
       
       <TextInput
         style={[globalStyles.text, styles.contentInput]}
         placeholder="Start writing..."
         value={content}
-        onChangeText={setContent}
+        onChangeText={handleTextChange}
         multiline
         textAlignVertical="top"
         placeholderTextColor="rgba(255, 255, 255, 0.5)"
@@ -111,5 +132,14 @@ const styles = StyleSheet.create({
     marginBottom: 80,
     maxWidth: 800,
     marginHorizontal: 'auto',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 1,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
 }); 
